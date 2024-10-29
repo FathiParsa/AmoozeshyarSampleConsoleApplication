@@ -36,6 +36,7 @@ namespace Amoozeshyar
                     Console.Write("Please Enter an Option: ");
                     inputValue = Console.ReadLine();
                 }
+
                 if (validateInput == 8)
                 {
                     break;
@@ -53,19 +54,18 @@ namespace Amoozeshyar
 
                     vi.ValidateOperation(res , "Class Added To Database Successfully! ", "Error in Saving Data...");
                 }
-
                 if (validateInput == 2)
                 {
                     Console.Write("Please Enter The Name of The Class You Want to Delete : ");
 
                     SqlHelper sqlHelper = new SqlHelper();
 
-                    Result resultGetClass = sqlHelper.GetClass(new UniversityClasses()
+                    List<UniversityClasses> universityClassList = sqlHelper.GetClass(new UniversityClasses()
                     {
                         ClassName = Console.ReadLine()
                     });
 
-                    vi.ValidateOperation(resultGetClass , "" , "Error in Getting Classes...");
+                    
 
                     Console.WriteLine("Now , Enter The Exact ID of Class To Permanently Remove It : ");
 
@@ -113,13 +113,12 @@ namespace Amoozeshyar
 
                     vi.ValidateOperation(addStudentResult, "Student Added To Database Successfully!", "Error in Adding New Student...");
                 }
-
                 if (validateInput == 4)
                 {
                     Console.WriteLine("For Delete Any Student You should Search Student Name And Then Enter The Exact ID of It. \n");
 
-                    string firstName = "";
-                    string lastName = "";
+                    string? firstName = "";
+                    string? lastName = "";
 
                     do
                     {
@@ -135,12 +134,20 @@ namespace Amoozeshyar
 
                     SqlHelper sqlHelper = new SqlHelper();
 
-                    Result resultGetStudent = sqlHelper.GetStudent(new Student()
+                    List<Student> students = sqlHelper.GetStudent(new Student()
                     {
                         Firstname = firstName,
                         Lastname = lastName
                     });
-                    vi.ValidateOperation(resultGetStudent, "", "Error in Getting Students...");
+
+                    foreach (var student in students)
+                    {
+                        Console.Write("ID : " + student.ID + " ".PadLeft(4));
+                        Console.Write(" Firstname : " + student.Firstname + " ".PadLeft(4));
+                        Console.Write(" Lastname : " + student.Lastname + " ".PadLeft(4));
+                        Console.Write(" Age : " + student.Age + " ".PadLeft(4));
+                        Console.WriteLine(" National Code : " + student.NationalCode + " ");
+                    }
 
                     Console.WriteLine("Now , Enter The Student ID To Permanently Remove It : ");
 
@@ -159,12 +166,12 @@ namespace Amoozeshyar
 
                     SqlHelper sqlHelper = new SqlHelper();
 
-                    Result resultGetClass = sqlHelper.GetClass(new UniversityClasses
+                    List<UniversityClasses> universityClassList = sqlHelper.GetClass(new UniversityClasses
                     {
                         ClassName = " "
                     });
 
-                    vi.ValidateOperation(resultGetClass, " ", "Error in Getting Classes...");
+                    
 
                     Console.Write("Now , Enter ID of Class That You Want To Select For Student : ");
 
@@ -180,22 +187,34 @@ namespace Amoozeshyar
                 {
                     SqlHelper sqlHelper = new SqlHelper();
 
-                    Result resultGetClass = sqlHelper.GetClass(new UniversityClasses
+                    List<UniversityClasses> universityClassList = sqlHelper.GetClass(new UniversityClasses
                     {
                         ClassName = " "
                     });
 
-                    vi.ValidateOperation(resultGetClass, " ", "Error in Getting Classes...");
+                    Console.WriteLine("These Are Classes Found : ");
 
-                    Console.Write("Select Class By Entering Class ID : ");
+                    foreach (var uniClass in universityClassList)
+                    {
+                        Console.WriteLine(uniClass.ID + ". " + uniClass.ClassName);
+                    }
+
+                    Console.Write("\nSelect Class By Entering Class ID : ");
                     int classID = int.Parse(Console.ReadLine());
 
-                    Result resultClassStudents = sqlHelper.ClassStudents(new UniversityClasses
+                    List<ClassStudents> classStudents = sqlHelper.ClassStudents(new UniversityClasses
                     {
                         ID = classID,
                     });
 
-                    vi.ValidateOperation(resultClassStudents, "", "Error in Getting Data...");
+                    Console.WriteLine("These Are Students in This Class : ");
+
+                    foreach (var classStudent in classStudents)
+                    {
+                        Console.Write("\nClass Name : " + classStudent.ClassName + " ".PadLeft(10) );
+                        Console.Write("Student Name : " + classStudent.StudentFullname + " ".PadLeft(5));
+                        Console.Write("Student ID : " + classStudent.StudentID);
+                    }
 
                     Console.Write("\n\nWhich Student You Want To Delete From Class? Enter The Student ID : ");
 
@@ -213,9 +232,13 @@ namespace Amoozeshyar
 
                     SqlHelper sqlHelper = new SqlHelper();
 
-                    Result resultShowSchedule = sqlHelper.ShowSchedule();
+                    List<Schedule> scheduleList = sqlHelper.ShowSchedule();
 
-                    vi.ValidateOperation(resultShowSchedule, "Schedule Showed Successfully!", "Error In Showing Schedule...");
+                    foreach (var schedule in scheduleList)
+                    {
+                        Console.Write("\nClass Name : " + schedule.ClassName + " ".PadLeft(15));
+                        Console.Write("Student Name : " + schedule.StudentFullname + " ".PadLeft(4));    
+                    }
                 }
             }
         }

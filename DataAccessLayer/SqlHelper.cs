@@ -8,9 +8,17 @@ namespace DataAccessLayer
 {
     public class SqlHelper
     {
+        private string ConnectionString
+        {
+            get
+            {
+                return "Server=.;Database=AmoozeshyarDB;Trusted_Connection=True;TrustServerCertificate = True;";
+            }
+        }
+
         public Result AddClass(UniversityClasses universityClasses)
         {
-            SqlConnection connection = new SqlConnection("Server=.;Database=AmoozeshyarDB;Trusted_Connection=True;TrustServerCertificate = True;");
+            SqlConnection connection = new SqlConnection(ConnectionString);
 
             try
             {
@@ -42,13 +50,12 @@ namespace DataAccessLayer
             }
         }
 
-        public Result GetClass(UniversityClasses universityClasses)
+        public List<UniversityClasses> GetClass(UniversityClasses universityClasses)
         {
             List<UniversityClasses> universityClassList = new List<UniversityClasses>();
 
             SqlConnection connection =
-                new SqlConnection(
-                    "Server=;Database=AmoozeshyarDB;Trusted_Connection=True;TrustServerCertificate = True;");
+                new SqlConnection(ConnectionString);
             try
             {
                 SqlCommand command = new("SELECT [ID],[Name] FROM [dbo].[UniversityClass] WHERE Name LIKE (@ClassName)", connection);
@@ -68,25 +75,13 @@ namespace DataAccessLayer
                     });
                 }
 
-                Console.WriteLine("These Are Classes Found : ");
-
-                foreach (var uniClass in universityClassList)
-                {
-                    Console.WriteLine(uniClass.ID + ". " + uniClass.ClassName);
-                }
-                return new Result()
-                {
-                    IsSuccess = true
-                };
+                return universityClassList;
 
             }
             catch (Exception ex)
             {
-                return new Result()
-                {
-                    Exeption = ex,
-                    IsSuccess = false
-                };
+                Console.WriteLine("Error : " + ex.Message);
+                return null;
             }
             finally
             {
@@ -95,10 +90,9 @@ namespace DataAccessLayer
             }
         }
 
-
         public Result RemoveClass(UniversityClasses universityClasses)
         {
-            SqlConnection connection = new SqlConnection("Server=.;Database=AmoozeshyarDB;Trusted_Connection=True;TrustServerCertificate = True;");
+            SqlConnection connection = new SqlConnection(ConnectionString);
 
             try
             {
@@ -131,7 +125,7 @@ namespace DataAccessLayer
 
         public Result AddStudent(Student student)
         {
-            SqlConnection connection = new SqlConnection("Server=.;Database=AmoozeshyarDB;Trusted_Connection=True;TrustServerCertificate = True;");
+            SqlConnection connection = new SqlConnection(ConnectionString);
 
             SqlCommand command = new SqlCommand("INSERT INTO [dbo].[Student] ([Firstname] ,[Lastname] ,[Age],[NationalCode]) VALUES (@Firstname , @Lastname , @Age, @NationalCode)", connection);
 
@@ -168,41 +162,43 @@ namespace DataAccessLayer
             }
         }
 
-        public Result GetStudent(Student student)
+        public List<Student> GetStudent(Student student)
         {
-            SqlConnection connection = new SqlConnection("Server=.;Database=AmoozeshyarDB;Trusted_Connection=True;TrustServerCertificate = True;");
+            SqlConnection connection = new SqlConnection(ConnectionString);
 
             SqlCommand command = new SqlCommand("SELECT * FROM [AmoozeshyarDB].[dbo].[Student] WHERE Firstname +' '+ Lastname LIKE @Fullname", connection);
 
             try
             {
                 connection.Open();
-
                 command.Parameters.AddWithValue("@Fullname", "%" + student.Firstname + " " + student.Lastname + "%");
-
                 SqlDataReader reader = command.ExecuteReader();
+
+                List<Student> students = new List<Student>();
 
                 while (reader.Read())
                 {
-                    Console.Write("ID : " + reader[0].ToString() + " ".PadLeft(4));
-                    Console.Write(" Firstname : " + reader[1].ToString() + " ".PadLeft(4));
-                    Console.Write(" Lastname : " + reader[2].ToString() + " ".PadLeft(4));
-                    Console.Write(" Age : " + reader[3].ToString() + " ".PadLeft(4));
-                    Console.WriteLine(" National Code : " + reader[4].ToString() + " ");
-                }
+                    int? id = reader.IsDBNull(0) ? (int?)null : (int?)reader[0];
+                    string firstname = reader.IsDBNull(1) ? null : reader.GetString(1);
+                    string lastname = reader.IsDBNull(2) ? null : reader.GetString(2);
+                    int? age = reader.IsDBNull(3) ? (int?)null : (int?)reader[3];
+                    string nationalCode = reader.IsDBNull(4) ? null : reader.GetString(4);
 
-                return new Result()
-                {
-                    IsSuccess = true
-                };
+                    students.Add(new Student
+                    {
+                        ID = id,
+                        Firstname = firstname,
+                        Lastname = lastname,
+                        Age = age,
+                        NationalCode = nationalCode
+                    });
+                }
+                return students;
             }
             catch (Exception ex)
             {
-                //Console.WriteLine($"Error : {ex.Message}");
-                return new Result()
-                {
-                    IsSuccess = false
-                };
+                Console.WriteLine($"Error : {ex.Message}");
+                return null;
             }
             finally
             {
@@ -213,7 +209,7 @@ namespace DataAccessLayer
 
         public Result RemoveStudent(Student student)
         {
-            SqlConnection connection = new SqlConnection("Server=.;Database=AmoozeshyarDB;Trusted_Connection=True;TrustServerCertificate = True;");
+            SqlConnection connection = new SqlConnection(ConnectionString);
 
             try
             {
@@ -248,7 +244,7 @@ namespace DataAccessLayer
         public Result AddClassForStudent(StudentUniversityClasses studentUniversityClasses)
         {
 
-            SqlConnection connection = new SqlConnection("Server=.;Database=AmoozeshyarDB;Trusted_Connection=True;TrustServerCertificate = True;");
+            SqlConnection connection = new SqlConnection(ConnectionString);
 
             SqlCommand command = new SqlCommand("INSERT INTO [dbo].[ClassStudent] ([StudentID] , [ClassID]) VALUES (@StudentID , @ClassID) ", connection);
 
@@ -281,11 +277,14 @@ namespace DataAccessLayer
                 command.Dispose();
             }
         }
-        public Result ClassStudents(UniversityClasses universityClasses)
+
+        public List<ClassStudents> ClassStudents(UniversityClasses universityClasses)
         {
-            SqlConnection connection = new SqlConnection("Server=.;Database=AmoozeshyarDB;Trusted_Connection=True;TrustServerCertificate = True;");
+            SqlConnection connection = new SqlConnection(ConnectionString);
 
             SqlCommand command = new SqlCommand("SELECT  uc.Name, s.Firstname + ' ' + s.Lastname As [Full Name] , s.ID AS [Student ID] FROM [UniversityClass] uc JOIN [ClassStudent] cs ON cs.ClassID = uc.ID JOIN [AmoozeshyarDB].[dbo].[Student] s ON s.ID = cs.StudentID WHERE cs.ClassID = (@ClassID)", connection);
+
+            List<ClassStudents> classStudents = new List<ClassStudents>();
 
             try
             {
@@ -295,27 +294,24 @@ namespace DataAccessLayer
 
                 SqlDataReader reader = command.ExecuteReader();
 
-                Console.WriteLine("These Are Students in This Class : ");
+                
 
                 while (reader.Read())
                 {
-                    Console.Write("\nClass Name : " + reader[0].ToString() + " ".PadLeft(4));
-                    Console.Write("Student Name  : " + reader[1].ToString() + " ".PadLeft(4));
-                    Console.Write("          ID  : " + reader[2].ToString() + " ".PadLeft(4));
+                    classStudents.Add(new ClassStudents()
+                    {
+                        ClassName = reader[0].ToString(),
+                        StudentFullname = reader[1].ToString(),
+                        StudentID = (int)reader[2]
+                    });
                 }
 
-                return new Result()
-                {
-                    IsSuccess = true
-                };
+                return classStudents;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error : {ex.Message}");
-                return new Result()
-                {
-                    IsSuccess = false
-                };
+                return null;
             }
             finally
             {
@@ -323,9 +319,10 @@ namespace DataAccessLayer
                 connection.Dispose();
             }
         }
+
         public Result RemoveStudentFromClass(StudentUniversityClasses studentUniversityClasses)
         {
-            SqlConnection connection = new SqlConnection("Server=.;Database=AmoozeshyarDB;Trusted_Connection=True;TrustServerCertificate = True;");
+            SqlConnection connection = new SqlConnection(ConnectionString);
 
             try
             {
@@ -358,11 +355,13 @@ namespace DataAccessLayer
             }
         }
 
-        public Result ShowSchedule()
+        public List<Schedule> ShowSchedule()
         {
-            SqlConnection connection = new SqlConnection("Server=.;Database=AmoozeshyarDB;Trusted_Connection=True;TrustServerCertificate = True;");
+            SqlConnection connection = new SqlConnection(ConnectionString);
 
             SqlCommand command = new SqlCommand("SELECT uc.[Name] , s.Firstname + ' ' + s.Lastname AS [Full Name] FROM [AmoozeshyarDB].[dbo].[UniversityClass] uc JOIN [ClassStudent] cs ON uc.ID = cs.ClassID JOIN [Student] s ON s.ID = cs.StudentID ORDER BY 1", connection);
+
+            List<Schedule> schedules = new List<Schedule>();
 
             try
             {
@@ -372,23 +371,18 @@ namespace DataAccessLayer
 
                 while (reader.Read())
                 {
-                    Console.Write("\nClass Name : " + reader[0].ToString() + " ".PadLeft(4));
-                    Console.Write("Student Name : " + reader[1].ToString() + " ".PadLeft(4));
+                    schedules.Add(new Schedule()
+                    {
+                        ClassName = reader[0].ToString(),
+                        StudentFullname = reader[1].ToString()
+                    });
                 }
-
-                return new Result()
-                {
-                    IsSuccess = true
-                };
+                return schedules;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error : {ex.Message}");
-                return new Result()
-                {
-                    Exeption = ex,
-                    IsSuccess = false
-                };
+                return null;
             }
             finally
             {

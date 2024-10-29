@@ -8,11 +8,11 @@ namespace Model
 {
     public class Student
     {
-        public int ID { get; set; }
-        public string Firstname { get; set; }
-        public string Lastname { get; set; }
-        public int Age { get; set; }
-        public string NationalCode { get; set; }
+        public int? ID { get; set; }
+        public string? Firstname { get; set; }
+        public string? Lastname { get; set; }
+        public int? Age { get; set; }
+        public string? NationalCode { get; set; }
 
     }
 }
